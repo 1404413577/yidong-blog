@@ -167,7 +167,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
-import axios from 'axios'
+import { getDashboardStats, getAdminArticles } from '@/api/admin'
 
 const authStore = useAuthStore()
 
@@ -187,19 +187,19 @@ const formatDate = (dateString) => {
 const fetchDashboardData = async () => {
   try {
     isLoading.value = true
-    
+
     // 获取统计数据
     const [statsResponse, articlesResponse] = await Promise.all([
-      axios.get('/api/admin/dashboard/stats'),
-      axios.get('/api/admin/articles?page=1&pageSize=5')
+      getDashboardStats(),
+      getAdminArticles({ page: 1, pageSize: 5 })
     ])
-    
-    if (statsResponse.data.success) {
-      stats.value = statsResponse.data.data
+
+    if (statsResponse.code === 200) {
+      stats.value = statsResponse.data
     }
-    
-    if (articlesResponse.data.success) {
-      recentArticles.value = articlesResponse.data.data.articles
+
+    if (articlesResponse.code === 200) {
+      recentArticles.value = articlesResponse.data.articles
     }
   } catch (error) {
     console.error('获取仪表板数据失败:', error)

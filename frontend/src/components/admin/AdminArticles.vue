@@ -93,7 +93,7 @@
                 编辑
               </button>
               <button
-                @click="deleteArticle(article)"
+                @click="deleteArticleHandler(article)"
                 class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
               >
                 删除
@@ -142,7 +142,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import { getAdminArticles, deleteArticle } from '@/api/admin'
 import ArticleModal from './ArticleModal.vue'
 
 const isLoading = ref(false)
@@ -189,12 +189,12 @@ const fetchArticles = async () => {
       pageSize: pagination.value.pageSize,
       ...filters
     }
-    
-    const response = await axios.get('/api/admin/articles', { params })
-    
-    if (response.data.success) {
-      articles.value = response.data.data.articles
-      pagination.value = response.data.data.pagination
+
+    const response = await getAdminArticles(params)
+
+    if (response.code === 200) {
+      articles.value = response.data.articles
+      pagination.value = response.data.pagination
     }
   } catch (error) {
     console.error('获取文章列表失败:', error)
@@ -215,14 +215,14 @@ const editArticle = (article) => {
   showEditModal.value = true
 }
 
-const deleteArticle = async (article) => {
+const deleteArticleHandler = async (article) => {
   if (!confirm(`确定要删除文章"${article.title}"吗？`)) {
     return
   }
-  
+
   try {
-    const response = await axios.delete(`/api/admin/articles/${article.id}`)
-    if (response.data.success) {
+    const response = await deleteArticle(article.id)
+    if (response.code === 200) {
       fetchArticles()
     }
   } catch (error) {

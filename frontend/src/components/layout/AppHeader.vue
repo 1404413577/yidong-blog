@@ -1,20 +1,20 @@
 <template>
-  <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200 dark:border-gray-700">
-    <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
+  <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 glass dark:border-gray-700">
+    <nav class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <router-link 
           to="/" 
-          class="flex items-center space-x-2 text-xl font-bold text-gradient hover:scale-105 transition-transform duration-200"
+          class="flex items-center space-x-2 text-xl font-bold transition-transform duration-200 text-gradient hover:scale-105"
         >
-          <div class="w-8 h-8 bg-gradient-to-br from-primary-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span class="text-white font-bold text-sm">Y</span>
+          <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-purple-600">
+            <span class="text-sm font-bold text-white">Y</span>
           </div>
-          <span class="hidden sm:block">易东博客</span>
+          <span class="hidden sm:block">ming博客</span>
         </router-link>
         
         <!-- 桌面端导航 -->
-        <div class="hidden md:flex items-center space-x-8">
+        <div class="items-center hidden space-x-8 md:flex">
           <router-link
             v-for="item in navItems"
             :key="item.name"
@@ -29,18 +29,18 @@
         <!-- 右侧操作 -->
         <div class="flex items-center space-x-4">
           <!-- 用户菜单 -->
-          <div v-if="authStore.isAuthenticated" class="hidden md:flex items-center space-x-3">
+          <div v-if="authStore.isAuthenticated" class="items-center hidden space-x-3 md:flex">
             <!-- 用户头像和信息 -->
             <div class="flex items-center space-x-2">
               <img
                 v-if="authStore.user?.avatar"
-                :src="authStore.user.avatar"
+                :src="getAvatarUrl(authStore.user.avatar)"
                 :alt="authStore.user.nickname"
-                class="h-8 w-8 rounded-full object-cover"
+                class="object-cover w-8 h-8 rounded-full"
               />
               <div
                 v-else
-                class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center"
+                class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full dark:bg-gray-600"
               >
                 <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {{ authStore.user?.nickname?.charAt(0) || 'U' }}
@@ -55,7 +55,7 @@
             <!-- 由于所有用户都是管理员，直接显示管理后台入口 -->
             <router-link
               to="/admin"
-              class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+              class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             >
               管理后台
             </router-link>
@@ -63,7 +63,7 @@
             <!-- 登出按钮 -->
             <button
               @click="handleLogout"
-              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm font-medium"
+              class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
               退出
             </button>
@@ -73,7 +73,7 @@
           <router-link
             v-else
             to="/login"
-            class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+            class="items-center hidden px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 border border-transparent rounded-md md:inline-flex hover:bg-blue-700"
           >
             登录
           </router-link>
@@ -81,7 +81,7 @@
           <!-- 主题切换 -->
           <button
             @click="toggleTheme"
-            class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+            class="p-2 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
           >
             <svg v-if="isDark" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -95,7 +95,7 @@
           <!-- 移动端菜单按钮 -->
           <button
             @click="toggleMobileMenu"
-            class="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+            class="p-2 transition-colors duration-200 rounded-lg md:hidden hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path v-if="!isMobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -114,7 +114,7 @@
         leave-from-class="transform scale-100 opacity-100"
         leave-to-class="transform scale-95 opacity-0"
       >
-        <div v-if="isMobileMenuOpen" class="md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
+        <div v-if="isMobileMenuOpen" class="py-4 border-t border-gray-200 md:hidden dark:border-gray-700">
           <div class="flex flex-col space-y-2">
             <router-link
               v-for="item in navItems"
@@ -128,17 +128,17 @@
             </router-link>
 
             <!-- 移动端用户菜单 -->
-            <div v-if="authStore.isAuthenticated" class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+            <div v-if="authStore.isAuthenticated" class="pt-2 mt-2 border-t border-gray-200 dark:border-gray-700">
               <div class="flex items-center px-4 py-2">
                 <img
                   v-if="authStore.user?.avatar"
-                  :src="authStore.user.avatar"
+                  :src="getAvatarUrl(authStore.user.avatar)"
                   :alt="authStore.user.nickname"
-                  class="h-8 w-8 rounded-full object-cover mr-3"
+                  class="object-cover w-8 h-8 mr-3 rounded-full"
                 />
                 <div
                   v-else
-                  class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center mr-3"
+                  class="flex items-center justify-center w-8 h-8 mr-3 bg-gray-300 rounded-full dark:bg-gray-600"
                 >
                   <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                     {{ authStore.user?.nickname?.charAt(0) || 'U' }}
@@ -160,7 +160,7 @@
 
               <button
                 @click="handleLogout"
-                class="w-full text-left mobile-nav-link text-red-600 dark:text-red-400"
+                class="w-full text-left text-red-600 mobile-nav-link dark:text-red-400"
               >
                 退出登录
               </button>
@@ -170,7 +170,7 @@
             <router-link
               v-else
               to="/login"
-              class="mobile-nav-link text-blue-600 dark:text-blue-400 font-semibold"
+              class="font-semibold text-blue-600 mobile-nav-link dark:text-blue-400"
               @click="closeMobileMenu"
             >
               登录
@@ -187,6 +187,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
+import { getAvatarUrl } from '@/utils/url'
 
 export default {
   name: 'AppHeader',
@@ -230,7 +231,8 @@ export default {
       toggleTheme,
       toggleMobileMenu,
       closeMobileMenu,
-      handleLogout
+      handleLogout,
+      getAvatarUrl
     }
   }
 }

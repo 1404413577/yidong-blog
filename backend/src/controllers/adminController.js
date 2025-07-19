@@ -2,6 +2,7 @@ const Article = require('../models/Article');
 const Category = require('../models/Category');
 const Tag = require('../models/Tag');
 const { query } = require('../config/database');
+const { success, errors } = require('../utils/response');
 
 class AdminController {
   /**
@@ -44,30 +45,23 @@ class AdminController {
         ORDER BY date DESC
       `, [userId]);
 
-      ctx.body = {
-        success: true,
-        data: {
-          articles: {
-            total: articleStats.total || 0,
-            published: articleStats.published || 0,
-            draft: articleStats.draft || 0
-          },
-          categories: categoryStats.total || 0,
-          tags: tagStats.total || 0,
-          views: {
-            total: articleStats.total_views || 0,
-            recent: viewStats
-          },
-          likes: articleStats.total_likes || 0
-        }
-      };
+      ctx.body = success({
+        articles: {
+          total: articleStats.total || 0,
+          published: articleStats.published || 0,
+          draft: articleStats.draft || 0
+        },
+        categories: categoryStats.total || 0,
+        tags: tagStats.total || 0,
+        views: {
+          total: articleStats.total_views || 0,
+          recent: viewStats
+        },
+        likes: articleStats.total_likes || 0
+      });
     } catch (error) {
       console.error('Get dashboard stats error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '获取统计数据失败'
-      };
+      ctx.body = errors.serverError('获取统计数据失败');
     }
   }
 
@@ -80,19 +74,26 @@ class AdminController {
       const authorId = ctx.user.id;
 
       if (!title || !content) {
-        ctx.status = 400;
-        ctx.body = {
-          success: false,
-          message: '标题和内容不能为空'
-        };
+        ctx.body = errors.badRequest('标题和内容不能为空');
         return;
+      }
+
+      // 处理可能为 undefined 或空字符串的字段，转换为 null 或默认值
+      const processedSummary = summary || null;
+      const processedCoverImage = cover_image || null;
+      const processedCategoryId = category_id || null;
+
+      // 确保 status 是有效值
+      let processedStatus = 'draft'; // 默认值
+      if (status && ['draft', 'published'].includes(status)) {
+        processedStatus = status;
       }
 
       // 创建文章
       const articleResult = await query(`
         INSERT INTO articles (author_id, title, content, summary, cover_image, category_id, status, is_featured)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [authorId, title, content, summary, cover_image, category_id, status, is_featured ? 1 : 0]);
+      `, [authorId, title, content, processedSummary, processedCoverImage, processedCategoryId, processedStatus, is_featured ? 1 : 0]);
 
       const articleId = articleResult.insertId;
 
@@ -106,18 +107,10 @@ class AdminController {
       // 获取创建的文章详情
       const article = await Article.getById(articleId);
 
-      ctx.body = {
-        success: true,
-        message: '文章创建成功',
-        data: { article }
-      };
+      ctx.body = success({ article }, '文章创建成功');
     } catch (error) {
       console.error('Create article error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '创建文章失败'
-      };
+      ctx.body = errors.serverError('创建文章失败');
     }
   }
 
@@ -133,11 +126,7 @@ class AdminController {
       // 检查文章是否存在且属于当前用户
       const existingArticle = await query('SELECT * FROM articles WHERE id = ? AND author_id = ?', [articleId, authorId]);
       if (existingArticle.length === 0) {
-        ctx.status = 404;
-        ctx.body = {
-          success: false,
-          message: '文章不存在或无权限编辑'
-        };
+        ctx.body = errors.notFound('文章不存在或无权限编辑');
         return;
       }
 
@@ -155,19 +144,21 @@ class AdminController {
       }
       if (summary !== undefined) {
         updateFields.push('summary = ?');
-        updateValues.push(summary);
+        updateValues.push(summary || null);
       }
       if (cover_image !== undefined) {
         updateFields.push('cover_image = ?');
-        updateValues.push(cover_image);
+        updateValues.push(cover_image || null);
       }
       if (category_id !== undefined) {
         updateFields.push('category_id = ?');
-        updateValues.push(category_id);
+        updateValues.push(category_id || null);
       }
       if (status !== undefined) {
         updateFields.push('status = ?');
-        updateValues.push(status);
+        // 确保 status 是有效值
+        const validStatus = ['draft', 'published'].includes(status) ? status : 'draft';
+        updateValues.push(validStatus);
       }
       if (is_featured !== undefined) {
         updateFields.push('is_featured = ?');
@@ -195,18 +186,10 @@ class AdminController {
       // 获取更新后的文章详情
       const article = await Article.getById(articleId);
 
-      ctx.body = {
-        success: true,
-        message: '文章更新成功',
-        data: { article }
-      };
+      ctx.body = success({ article }, '文章更新成功');
     } catch (error) {
       console.error('Update article error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '更新文章失败'
-      };
+      ctx.body = errors.serverError('更新文章失败');
     }
   }
 
@@ -221,11 +204,7 @@ class AdminController {
       // 检查文章是否存在且属于当前用户
       const existingArticle = await query('SELECT * FROM articles WHERE id = ? AND author_id = ?', [articleId, authorId]);
       if (existingArticle.length === 0) {
-        ctx.status = 404;
-        ctx.body = {
-          success: false,
-          message: '文章不存在或无权限删除'
-        };
+        ctx.body = errors.notFound('文章不存在或无权限删除');
         return;
       }
 
@@ -235,17 +214,10 @@ class AdminController {
       // 删除文章
       await query('DELETE FROM articles WHERE id = ?', [articleId]);
 
-      ctx.body = {
-        success: true,
-        message: '文章删除成功'
-      };
+      ctx.body = success(null, '文章删除成功');
     } catch (error) {
       console.error('Delete article error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '删除文章失败'
-      };
+      ctx.body = errors.serverError('删除文章失败');
     }
   }
 
@@ -308,25 +280,18 @@ class AdminController {
       const total = countResult[0]?.total || 0;
       const totalPages = Math.ceil(total / pageSize);
 
-      ctx.body = {
-        success: true,
-        data: {
-          articles,
-          pagination: {
-            page: parseInt(page),
-            pageSize: parseInt(pageSize),
-            total,
-            totalPages
-          }
+      ctx.body = success({
+        articles,
+        pagination: {
+          page: parseInt(page),
+          pageSize: parseInt(pageSize),
+          total,
+          totalPages
         }
-      };
+      });
     } catch (error) {
       console.error('Get my articles error:', error);
-      ctx.status = 500;
-      ctx.body = {
-        success: false,
-        message: '获取文章列表失败'
-      };
+      ctx.body = errors.serverError('获取文章列表失败');
     }
   }
 }

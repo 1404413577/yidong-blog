@@ -36,7 +36,7 @@
               编辑
             </button>
             <button
-              @click="deleteCategory(category)"
+              @click="deleteCategoryHandler(category)"
               class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm"
             >
               删除
@@ -130,7 +130,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import { getAdminCategories, createCategory, updateCategory, deleteCategory } from '@/api/admin'
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
@@ -148,9 +148,9 @@ const categoryForm = reactive({
 const fetchCategories = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/categories')
-    if (response.data.success) {
-      categories.value = response.data.data
+    const response = await getAdminCategories()
+    if (response.code === 200) {
+      categories.value = response.data
     }
   } catch (error) {
     console.error('获取分类列表失败:', error)
@@ -167,42 +167,40 @@ const editCategory = (category) => {
   showEditModal.value = true
 }
 
-const deleteCategory = async (category) => {
+const deleteCategoryHandler = async (category) => {
   if (!confirm(`确定要删除分类"${category.name}"吗？`)) {
     return
   }
-  
+
   try {
-    const response = await axios.delete(`/api/admin/categories/${category.id}`)
-    if (response.data.success) {
+    const response = await deleteCategory(category.id)
+    if (response.code === 200) {
       fetchCategories()
     }
   } catch (error) {
     console.error('删除分类失败:', error)
-    alert(error.response?.data?.message || '删除失败，请稍后重试')
+    alert(error.message || '删除失败，请稍后重试')
   }
 }
 
 const saveCategory = async () => {
   try {
     isSubmitting.value = true
-    
+
+    let response
     if (showEditModal.value) {
-      const response = await axios.put(`/api/admin/categories/${editingCategory.value.id}`, categoryForm)
-      if (response.data.success) {
-        fetchCategories()
-        closeModal()
-      }
+      response = await updateCategory(editingCategory.value.id, categoryForm)
     } else {
-      const response = await axios.post('/api/admin/categories', categoryForm)
-      if (response.data.success) {
-        fetchCategories()
-        closeModal()
-      }
+      response = await createCategory(categoryForm)
+    }
+
+    if (response.code === 200) {
+      fetchCategories()
+      closeModal()
     }
   } catch (error) {
     console.error('保存分类失败:', error)
-    alert(error.response?.data?.message || '保存失败，请稍后重试')
+    alert(error.message || '保存失败，请稍后重试')
   } finally {
     isSubmitting.value = false
   }

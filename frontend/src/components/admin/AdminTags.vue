@@ -38,7 +38,7 @@
             编辑
           </button>
           <button
-            @click="deleteTag(tag)"
+            @click="deleteTagHandler(tag)"
             class="text-red-600 hover:text-red-800 dark:text-red-400 text-sm"
           >
             删除
@@ -109,7 +109,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import { getAdminTags, createTag, updateTag, deleteTag } from '@/api/admin'
 
 const isLoading = ref(false)
 const isSubmitting = ref(false)
@@ -126,9 +126,9 @@ const tagForm = reactive({
 const fetchTags = async () => {
   try {
     isLoading.value = true
-    const response = await axios.get('/api/tags')
-    if (response.data.success) {
-      tags.value = response.data.data
+    const response = await getAdminTags()
+    if (response.code === 200) {
+      tags.value = response.data
     }
   } catch (error) {
     console.error('获取标签列表失败:', error)
@@ -144,42 +144,40 @@ const editTag = (tag) => {
   showEditModal.value = true
 }
 
-const deleteTag = async (tag) => {
+const deleteTagHandler = async (tag) => {
   if (!confirm(`确定要删除标签"${tag.name}"吗？`)) {
     return
   }
-  
+
   try {
-    const response = await axios.delete(`/api/admin/tags/${tag.id}`)
-    if (response.data.success) {
+    const response = await deleteTag(tag.id)
+    if (response.code === 200) {
       fetchTags()
     }
   } catch (error) {
     console.error('删除标签失败:', error)
-    alert(error.response?.data?.message || '删除失败，请稍后重试')
+    alert(error.message || '删除失败，请稍后重试')
   }
 }
 
 const saveTag = async () => {
   try {
     isSubmitting.value = true
-    
+
+    let response
     if (showEditModal.value) {
-      const response = await axios.put(`/api/admin/tags/${editingTag.value.id}`, tagForm)
-      if (response.data.success) {
-        fetchTags()
-        closeModal()
-      }
+      response = await updateTag(editingTag.value.id, tagForm)
     } else {
-      const response = await axios.post('/api/admin/tags', tagForm)
-      if (response.data.success) {
-        fetchTags()
-        closeModal()
-      }
+      response = await createTag(tagForm)
+    }
+
+    if (response.code === 200) {
+      fetchTags()
+      closeModal()
     }
   } catch (error) {
     console.error('保存标签失败:', error)
-    alert(error.response?.data?.message || '保存失败，请稍后重试')
+    alert(error.message || '保存失败，请稍后重试')
   } finally {
     isSubmitting.value = false
   }

@@ -102,3 +102,12 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Upload files (keep folder structure but ignore uploaded files)
+backend/uploads/**/*
+!backend/uploads/
+!backend/uploads/*/
+!backend/uploads/**/.gitkeep
+
+# Test files
+test-avatar.png

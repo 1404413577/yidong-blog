@@ -154,7 +154,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import axios from 'axios'
+import { getAdminCategories, getAdminTags, createArticle, updateArticle } from '@/api/admin'
 
 const props = defineProps({
   article: Object,
@@ -171,7 +171,7 @@ const form = reactive({
   title: '',
   summary: '',
   content: '',
-  category_id: '',
+  category_id: null,
   tags: [],
   is_featured: false
 })
@@ -203,16 +203,16 @@ const removeTag = (tagId) => {
 const fetchData = async () => {
   try {
     const [categoriesRes, tagsRes] = await Promise.all([
-      axios.get('/api/categories'),
-      axios.get('/api/tags')
+      getAdminCategories(),
+      getAdminTags()
     ])
-    
-    if (categoriesRes.data.success) {
-      categories.value = categoriesRes.data.data
+
+    if (categoriesRes.code === 200) {
+      categories.value = categoriesRes.data
     }
-    
-    if (tagsRes.data.success) {
-      tags.value = tagsRes.data.data
+
+    if (tagsRes.code === 200) {
+      tags.value = tagsRes.data
     }
   } catch (error) {
     console.error('获取数据失败:', error)
@@ -224,7 +224,7 @@ const initForm = () => {
     form.title = props.article.title || ''
     form.summary = props.article.summary || ''
     form.content = props.article.content || ''
-    form.category_id = props.article.category_id || ''
+    form.category_id = props.article.category_id || null
     form.tags = props.article.tags ? props.article.tags.map(tag => tag.id) : []
     form.is_featured = props.article.is_featured || false
   }
@@ -233,27 +233,35 @@ const initForm = () => {
 const saveArticle = async (status = 'published') => {
   try {
     isSubmitting.value = true
-    
+
+    // 确保 status 是有效值
+    const validStatus = ['draft', 'published'].includes(status) ? status : 'published'
+
+    // 处理数据，确保空值转换为 null
     const articleData = {
       ...form,
-      status
+      status: validStatus,
+      category_id: form.category_id || null,
+      summary: form.summary || null
     }
-    
+
+    console.log('发送的文章数据:', articleData)
+
     let response
     if (props.isEdit) {
-      response = await axios.put(`/api/admin/articles/${props.article.id}`, articleData)
+      response = await updateArticle(props.article.id, articleData)
     } else {
-      response = await axios.post('/api/admin/articles', articleData)
+      response = await createArticle(articleData)
     }
-    
-    if (response.data.success) {
+
+    if (response.code === 200) {
       emit('saved')
     } else {
-      alert(response.data.message || '保存失败')
+      alert(response.message || '保存失败')
     }
   } catch (error) {
     console.error('保存文章失败:', error)
-    alert(error.response?.data?.message || '保存失败，请稍后重试')
+    alert(error.message || '保存失败，请稍后重试')
   } finally {
     isSubmitting.value = false
   }
