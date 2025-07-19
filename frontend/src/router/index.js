@@ -128,9 +128,9 @@ router.beforeEach(async (to, from, next) => {
   // 设置页面标题
   const title = to.meta.title
   if (title) {
-    document.title = `${title} - 易东的个人博客`
+    document.title = `${title} - 明渊的个人博客`
   } else {
-    document.title = '易东的个人博客'
+    document.title = '明渊的个人博客'
   }
 
   // 初始化认证状态（仅在首次访问时）

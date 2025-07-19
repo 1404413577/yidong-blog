@@ -5,14 +5,27 @@
       <div class="max-w-4xl mx-auto text-center">
         <!-- 头像 -->
         <div class="mb-8 animate-bounce-in">
-          <div class="flex items-center justify-center w-24 h-24 mx-auto rounded-full shadow-lg bg-gradient-to-br from-primary-500 to-purple-600">
-            <span class="text-3xl font-bold text-white">明</span>
+          <div class="relative w-24 h-24 mx-auto">
+            <!-- 用户头像 -->
+            <img
+              v-if="userAvatar"
+              :src="userAvatar"
+              :alt="userNickname || '用户头像'"
+              class="object-cover w-24 h-24 rounded-full shadow-lg ring-4 ring-white dark:ring-gray-800"
+            />
+            <!-- 默认头像 -->
+            <div
+              v-else
+              class="flex items-center justify-center w-24 h-24 rounded-full shadow-lg bg-gradient-to-br from-primary-500 to-purple-600"
+            >
+              <span class="text-3xl font-bold text-white">{{ userInitial }}</span>
+            </div>
           </div>
         </div>
         
         <!-- 标题 -->
         <h1 class="mb-6 text-4xl font-bold text-gray-900 sm:text-5xl lg:text-6xl dark:text-white animate-slide-up">
-          <span class="text-gradient">ming</span>的个人博客
+          <span class="text-gradient">{{ userDisplayName }}</span>的个人博客
         </h1>
         
         <!-- 副标题 -->
@@ -122,6 +135,8 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useBlogStore } from '@/stores/blog'
+import { useAuthStore } from '@/stores/auth'
+import { getAvatarUrl } from '@/utils/url'
 import ArticleCard from '@/components/blog/ArticleCard.vue'
 
 export default {
@@ -131,12 +146,39 @@ export default {
   },
   setup() {
     const blogStore = useBlogStore()
-    
+    const authStore = useAuthStore()
+
     const recentArticles = ref([])
-    
+
     const featuredArticles = computed(() => blogStore.featuredArticles)
     const categories = computed(() => blogStore.categories)
     const tags = computed(() => blogStore.tags)
+
+    // 用户头像相关
+    const userAvatar = computed(() => {
+      if (authStore.user?.avatar) {
+        return getAvatarUrl(authStore.user.avatar)
+      }
+      return null
+    })
+
+    const userNickname = computed(() => authStore.user?.nickname)
+
+    // 用户首字母（用于头像显示）
+    const userInitial = computed(() => {
+      if (authStore.user?.nickname) {
+        return authStore.user.nickname.charAt(0).toUpperCase()
+      }
+      return '明' // 默认显示"明"
+    })
+
+    // 用户显示名称（用于标题显示）
+    const userDisplayName = computed(() => {
+      if (authStore.user?.nickname) {
+        return authStore.user.nickname
+      }
+      return 'ming' // 默认显示"ming"
+    })
     
     const stats = computed(() => ({
       articles: blogStore.articles.length || 0,
@@ -174,7 +216,11 @@ export default {
     return {
       featuredArticles,
       recentArticles,
-      stats
+      stats,
+      userAvatar,
+      userNickname,
+      userInitial,
+      userDisplayName
     }
   }
 }

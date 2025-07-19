@@ -30,8 +30,30 @@ app.use(bodyParser({
 }));
 
 // CORS配置
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://192.168.31.222:5173',
+  'http://192.168.137.1:5173',
+  process.env.CORS_ORIGIN
+].filter(Boolean); // 过滤掉 undefined 值
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin: (ctx) => {
+    const origin = ctx.headers.origin;
+    // 如果是开发环境，允许所有本地IP
+    if (process.env.NODE_ENV === 'development') {
+      // 允许所有 localhost 和 192.168.x.x 的地址
+      if (!origin ||
+          origin.includes('localhost') ||
+          origin.includes('127.0.0.1') ||
+          /^http:\/\/192\.168\.\d+\.\d+:5173$/.test(origin)) {
+        return origin;
+      }
+    }
+    // 生产环境或其他情况，检查允许的域名列表
+    return allowedOrigins.includes(origin) ? origin : false;
+  },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'Accept']
@@ -62,6 +84,10 @@ async function startServer() {
     app.listen(PORT, () => {
       console.log(`🚀 服务器启动成功`);
       console.log(`📍 服务地址: http://localhost:${PORT}`);
+      console.log(`🧬 版本: ${process.env.npm_package_version}`);
+      console.log(`🖥 系统: ${process.platform}`);
+      console.log(`🐧 Node.js: ${process.version}`);
+      console.log(`IP地址: http://192.168.31.222:${PORT}`);
       console.log(`🌍 环境: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📊 API文档: http://localhost:${PORT}/api/health`);
     });

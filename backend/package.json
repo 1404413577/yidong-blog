@@ -14,7 +14,7 @@
     "mysql",
     "api"
   ],
-  "author": "易东",
+  "author": "明渊",
   "license": "MIT",
   "dependencies": {
     "axios": "^1.10.0",
