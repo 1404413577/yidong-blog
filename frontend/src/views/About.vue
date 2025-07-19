@@ -5,12 +5,12 @@
       <section class="text-center mb-16">
         <div class="mb-8 animate-bounce-in">
           <div class="w-32 h-32 mx-auto bg-gradient-to-br from-primary-500 to-purple-600 rounded-full flex items-center justify-center shadow-xl">
-            <span class="text-white text-4xl font-bold">易</span>
+            <span class="text-white text-4xl font-bold">M</span>
           </div>
         </div>
         
         <h1 class="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-6 animate-slide-up">
-          <span class="text-gradient">易东</span>
+          <span class="text-gradient">MING</span>
         </h1>
         
         <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto animate-slide-up" style="animation-delay: 0.1s">

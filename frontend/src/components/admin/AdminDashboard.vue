@@ -169,6 +169,9 @@ import { ref, onMounted } from 'vue'
 import { useAuthStore } from '../../stores/auth'
 import { getDashboardStats, getAdminArticles } from '@/api/admin'
 
+// 定义事件
+const emit = defineEmits(['switch-tab'])
+
 const authStore = useAuthStore()
 
 const isLoading = ref(true)

@@ -93,7 +93,7 @@
         <div class="flex-1">
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow">
             <!-- 仪表板 -->
-            <AdminDashboard v-if="activeTab === 'dashboard'" />
+            <AdminDashboard v-if="activeTab === 'dashboard'" @switch-tab="switchTab" />
             
             <!-- 文章管理 -->
             <AdminArticles v-else-if="activeTab === 'articles'" />
@@ -127,6 +127,10 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const activeTab = ref('dashboard')
+
+const switchTab = (tabName) => {
+  activeTab.value = tabName
+}
 
 onMounted(async () => {
   // 确保用户已登录
