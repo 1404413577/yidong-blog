@@ -3,6 +3,9 @@ const ArticleController = require('../controllers/articleController');
 const CategoryController = require('../controllers/categoryController');
 const TagController = require('../controllers/tagController');
 
+// 导入认证路由
+const authRoutes = require('./auth');
+
 const router = new Router({
   prefix: '/api'
 });

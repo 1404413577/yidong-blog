@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 
 // 路由组件懒加载
 const Home = () => import('@/views/Home.vue')
@@ -8,6 +9,8 @@ const ArticleDetail = () => import('@/views/ArticleDetail.vue')
 const Category = () => import('@/views/Category.vue')
 const Tag = () => import('@/views/Tag.vue')
 const About = () => import('@/views/About.vue')
+const Login = () => import('@/views/Login.vue')
+const Admin = () => import('@/views/Admin.vue')
 const NotFound = () => import('@/views/NotFound.vue')
 
 const routes = [
@@ -66,6 +69,27 @@ const routes = [
     }
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: Login,
+    meta: {
+      title: '登录',
+      transition: 'fade',
+      requiresGuest: true
+    }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: Admin,
+    meta: {
+      title: '管理后台',
+      transition: 'fade',
+      requiresAuth: true,
+      requiresAdmin: true
+    }
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
     component: NotFound,
@@ -94,12 +118,13 @@ const router = createRouter({
 })
 
 // 全局前置守卫
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const appStore = useAppStore()
-  
+  const authStore = useAuthStore()
+
   // 关闭移动端菜单
   appStore.closeMobileMenu()
-  
+
   // 设置页面标题
   const title = to.meta.title
   if (title) {
@@ -107,7 +132,36 @@ router.beforeEach((to, from, next) => {
   } else {
     document.title = '易东的个人博客'
   }
-  
+
+  // 初始化认证状态（仅在首次访问时）
+  if (!authStore.user && authStore.token) {
+    try {
+      await authStore.initAuth()
+    } catch (error) {
+      console.error('初始化认证失败:', error)
+    }
+  }
+
+  // 路由守卫
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      next('/login')
+      return
+    }
+
+    // 由于所有注册用户都是管理员，简化权限检查
+    // 只要用户已登录，就可以访问管理后台
+    if (to.meta.requiresAdmin && !authStore.isAuthenticated) {
+      next('/login')
+      return
+    }
+  }
+
+  if (to.meta.requiresGuest && authStore.isAuthenticated) {
+    next('/')
+    return
+  }
+
   next()
 })
 

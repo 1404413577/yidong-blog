@@ -3,9 +3,14 @@ const cors = require('koa-cors');
 const bodyParser = require('koa-bodyparser');
 const json = require('koa-json');
 const logger = require('koa-logger');
+const serve = require('koa-static');
+const mount = require('koa-mount');
+const path = require('path');
 const { testConnection } = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
 const router = require('./src/routes');
+const authRoutes = require('./src/routes/auth');
+const adminRoutes = require('./src/routes/admin');
 
 require('dotenv').config();
 
@@ -32,7 +37,12 @@ app.use(cors({
   allowHeaders: ['Content-Type', 'Authorization', 'Accept']
 }));
 
+// 静态文件服务 - 用于提供上传的文件
+app.use(mount('/uploads', serve(path.join(__dirname, 'uploads'))));
+
 // 路由
+app.use(authRoutes.routes()).use(authRoutes.allowedMethods());
+app.use(adminRoutes.routes()).use(adminRoutes.allowedMethods());
 app.use(router.routes()).use(router.allowedMethods());
 
 // 应用级别错误监听

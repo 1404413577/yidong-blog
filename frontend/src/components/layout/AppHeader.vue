@@ -28,6 +28,56 @@
         
         <!-- 右侧操作 -->
         <div class="flex items-center space-x-4">
+          <!-- 用户菜单 -->
+          <div v-if="authStore.isAuthenticated" class="hidden md:flex items-center space-x-3">
+            <!-- 用户头像和信息 -->
+            <div class="flex items-center space-x-2">
+              <img
+                v-if="authStore.user?.avatar"
+                :src="authStore.user.avatar"
+                :alt="authStore.user.nickname"
+                class="h-8 w-8 rounded-full object-cover"
+              />
+              <div
+                v-else
+                class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center"
+              >
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ authStore.user?.nickname?.charAt(0) || 'U' }}
+                </span>
+              </div>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ authStore.user?.nickname }}
+              </span>
+            </div>
+
+            <!-- 管理后台入口 -->
+            <!-- 由于所有用户都是管理员，直接显示管理后台入口 -->
+            <router-link
+              to="/admin"
+              class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium"
+            >
+              管理后台
+            </router-link>
+
+            <!-- 登出按钮 -->
+            <button
+              @click="handleLogout"
+              class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-sm font-medium"
+            >
+              退出
+            </button>
+          </div>
+
+          <!-- 登录按钮 -->
+          <router-link
+            v-else
+            to="/login"
+            class="hidden md:inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors duration-200"
+          >
+            登录
+          </router-link>
+
           <!-- 主题切换 -->
           <button
             @click="toggleTheme"
@@ -41,7 +91,7 @@
               <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
             </svg>
           </button>
-          
+
           <!-- 移动端菜单按钮 -->
           <button
             @click="toggleMobileMenu"
@@ -76,6 +126,55 @@
             >
               {{ item.name }}
             </router-link>
+
+            <!-- 移动端用户菜单 -->
+            <div v-if="authStore.isAuthenticated" class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+              <div class="flex items-center px-4 py-2">
+                <img
+                  v-if="authStore.user?.avatar"
+                  :src="authStore.user.avatar"
+                  :alt="authStore.user.nickname"
+                  class="h-8 w-8 rounded-full object-cover mr-3"
+                />
+                <div
+                  v-else
+                  class="h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center mr-3"
+                >
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ authStore.user?.nickname?.charAt(0) || 'U' }}
+                  </span>
+                </div>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {{ authStore.user?.nickname }}
+                </span>
+              </div>
+
+              <!-- 由于所有用户都是管理员，直接显示管理后台入口 -->
+              <router-link
+                to="/admin"
+                class="mobile-nav-link"
+                @click="closeMobileMenu"
+              >
+                管理后台
+              </router-link>
+
+              <button
+                @click="handleLogout"
+                class="w-full text-left mobile-nav-link text-red-600 dark:text-red-400"
+              >
+                退出登录
+              </button>
+            </div>
+
+            <!-- 移动端登录按钮 -->
+            <router-link
+              v-else
+              to="/login"
+              class="mobile-nav-link text-blue-600 dark:text-blue-400 font-semibold"
+              @click="closeMobileMenu"
+            >
+              登录
+            </router-link>
           </div>
         </div>
       </transition>
@@ -85,41 +184,53 @@
 
 <script>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
+import { useAuthStore } from '@/stores/auth'
 
 export default {
   name: 'AppHeader',
   setup() {
+    const router = useRouter()
     const appStore = useAppStore()
-    
+    const authStore = useAuthStore()
+
     const navItems = [
       { name: '首页', path: '/' },
       { name: '文章', path: '/articles' },
       { name: '关于', path: '/about' }
     ]
-    
+
     const isDark = computed(() => appStore.isDark)
     const isMobileMenuOpen = computed(() => appStore.isMobileMenuOpen)
-    
+
     const toggleTheme = () => {
       appStore.toggleTheme()
     }
-    
+
     const toggleMobileMenu = () => {
       appStore.toggleMobileMenu()
     }
-    
+
     const closeMobileMenu = () => {
       appStore.closeMobileMenu()
     }
-    
+
+    const handleLogout = async () => {
+      await authStore.logout()
+      closeMobileMenu()
+      router.push('/')
+    }
+
     return {
       navItems,
       isDark,
       isMobileMenuOpen,
+      authStore,
       toggleTheme,
       toggleMobileMenu,
-      closeMobileMenu
+      closeMobileMenu,
+      handleLogout
     }
   }
 }
