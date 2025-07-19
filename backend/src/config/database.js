@@ -9,10 +9,7 @@ const dbConfig = {
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'yidong_blog',
   charset: 'utf8mb4',
-  timezone: '+08:00',
-  acquireTimeout: 60000,
-  timeout: 60000,
-  reconnect: true
+  timezone: '+08:00'
 };
 
 // 创建连接池
