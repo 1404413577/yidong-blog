@@ -85,8 +85,8 @@
           
           <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">联系方式</h3>
           <ul>
-            <li><strong>邮箱：</strong>contact@example.com</li>
-            <li><strong>GitHub：</strong><a href="https://github.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@yidong</a></li>
+            <li><strong>邮箱：</strong>1404413577@qq.com</li>
+            <li><strong>GitHub：</strong><a href="https://github.com/1404413577/yidong-blog" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@yidong</a></li>
             <li><strong>Twitter：</strong><a href="https://twitter.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 dark:text-primary-400 hover:underline">@yidong</a></li>
           </ul>
         </div>

@@ -1,7 +1,7 @@
 <template>
   <header class="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 glass dark:border-gray-700">
     <nav class="px-4 mx-auto max-w-7xl sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
+      <div class="flex items-center justify-between h-16 lg:h-18">
         <!-- Logo -->
         <router-link 
           to="/" 
@@ -14,7 +14,7 @@
         </router-link>
         
         <!-- 桌面端导航 -->
-        <div class="items-center hidden space-x-8 md:flex">
+        <div class="items-center hidden space-x-10 md:flex">
           <router-link
             v-for="item in navItems"
             :key="item.name"
@@ -27,53 +27,66 @@
         </div>
         
         <!-- 右侧操作 -->
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-6">
           <!-- 用户菜单 -->
-          <div v-if="authStore.isAuthenticated" class="items-center hidden space-x-3 md:flex">
-            <!-- 用户头像和信息 -->
-            <div class="flex items-center space-x-2">
-              <img
-                v-if="authStore.user?.avatar"
-                :src="getAvatarUrl(authStore.user.avatar)"
-                :alt="authStore.user.nickname"
-                class="object-cover w-8 h-8 rounded-full"
-              />
-              <div
-                v-else
-                class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full dark:bg-gray-600"
-              >
-                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {{ authStore.user?.nickname?.charAt(0) || 'U' }}
-                </span>
-              </div>
-              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                {{ authStore.user?.nickname }}
-              </span>
-            </div>
-
+          <div v-if="authStore.isAuthenticated" class="items-center hidden space-x-6 md:flex">
             <!-- 管理后台入口 -->
-            <!-- 由于所有用户都是管理员，直接显示管理后台入口 -->
             <router-link
               to="/admin"
-              class="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+              class="px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-md transition-colors"
             >
               管理后台
             </router-link>
 
-            <!-- 登出按钮 -->
-            <button
-              @click="handleLogout"
-              class="text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              退出
-            </button>
+            <!-- 用户信息下拉菜单 -->
+            <div class="relative" @click="toggleUserMenu" ref="userMenuRef">
+              <button class="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                <img
+                  v-if="authStore.user?.avatar"
+                  :src="getAvatarUrl(authStore.user.avatar)"
+                  :alt="authStore.user.nickname"
+                  class="object-cover w-8 h-8 rounded-full"
+                />
+                <div
+                  v-else
+                  class="flex items-center justify-center w-8 h-8 bg-gray-300 rounded-full dark:bg-gray-600"
+                >
+                  <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {{ authStore.user?.nickname?.charAt(0) || 'U' }}
+                  </span>
+                </div>
+                <span class="text-sm font-medium text-gray-700 dark:text-gray-300 hidden lg:block">
+                  {{ authStore.user?.nickname }}
+                </span>
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+
+              <!-- 下拉菜单 -->
+              <div
+                v-show="showUserMenu"
+                class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
+              >
+                <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ authStore.user?.nickname }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ authStore.user?.email }}</p>
+                </div>
+                <button
+                  @click="handleLogout"
+                  class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                >
+                  退出登录
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- 登录按钮 -->
           <router-link
             v-else
             to="/login"
-            class="items-center hidden px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 border border-transparent rounded-md md:inline-flex hover:bg-blue-700"
+            class="items-center hidden px-4 py-2 text-sm font-medium text-white transition-colors duration-200 bg-blue-600 border border-transparent rounded-lg md:inline-flex hover:bg-blue-700 shadow-sm"
           >
             登录
           </router-link>
@@ -81,7 +94,7 @@
           <!-- 主题切换 -->
           <button
             @click="toggleTheme"
-            class="p-2 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+            class="p-2.5 transition-colors duration-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
             :title="isDark ? '切换到浅色模式' : '切换到深色模式'"
           >
             <svg v-if="isDark" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -183,7 +196,7 @@
 </template>
 
 <script>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
@@ -205,6 +218,10 @@ export default {
     const isDark = computed(() => appStore.isDark)
     const isMobileMenuOpen = computed(() => appStore.isMobileMenuOpen)
 
+    // 用户菜单状态
+    const showUserMenu = ref(false)
+    const userMenuRef = ref(null)
+
     const toggleTheme = () => {
       appStore.toggleTheme()
     }
@@ -217,20 +234,48 @@ export default {
       appStore.closeMobileMenu()
     }
 
+    const toggleUserMenu = () => {
+      showUserMenu.value = !showUserMenu.value
+    }
+
+    const closeUserMenu = () => {
+      showUserMenu.value = false
+    }
+
     const handleLogout = async () => {
       await authStore.logout()
       closeMobileMenu()
+      closeUserMenu()
       router.push('/')
     }
+
+    // 点击外部关闭用户菜单
+    const handleClickOutside = (event) => {
+      if (userMenuRef.value && !userMenuRef.value.contains(event.target)) {
+        closeUserMenu()
+      }
+    }
+
+    onMounted(() => {
+      document.addEventListener('click', handleClickOutside)
+    })
+
+    onUnmounted(() => {
+      document.removeEventListener('click', handleClickOutside)
+    })
 
     return {
       navItems,
       isDark,
       isMobileMenuOpen,
+      showUserMenu,
+      userMenuRef,
       authStore,
       toggleTheme,
       toggleMobileMenu,
       closeMobileMenu,
+      toggleUserMenu,
+      closeUserMenu,
       handleLogout,
       getAvatarUrl
     }
